@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     name: Build unsigned iOS IPA
-    runs-on: macos-15
+    runs-on: macos-15-intel
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
 
       - name: Build IPA
         run: |
-          export PATH="/opt/homebrew/opt/make/libexec/gnubin:$PATH"
+          export PATH="$(brew --prefix make)/libexec/gnubin:$PATH"
           BOOTJDK=""
           if /usr/libexec/java_home -v 1.8 >/dev/null 2>&1; then
             JH=$(/usr/libexec/java_home -v 1.8)
