@@ -1,0 +1,45 @@
+name: Build IPA (GitHub-hosted runner)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build unsigned iOS IPA
+    runs-on: macos-15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+
+      - name: Install dependencies
+        run: brew install ldid make zip
+
+      - name: Ensure JDK 8
+        run: |
+          if /usr/libexec/java_home -v 1.8 >/dev/null 2>&1; then
+            echo "JDK 8 already present: $(/usr/libexec/java_home -v 1.8)"
+          else
+            brew install --cask temurin@8
+          fi
+
+      - name: Build IPA
+        run: |
+          export PATH="/opt/homebrew/opt/make/libexec/gnubin:$PATH"
+          gmake -j"$(sysctl -n hw.ncpu)" dsym package PLATFORM=2
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: amethyst-ios-unsigned-ipa
+          path: artifacts/org.angelauramc.amethyst-*-ios.ipa
+
+      - name: Upload java_runtimes
+        uses: actions/upload-artifact@v4
+        with:
+          name: amethyst-java-runtimes
+          path: artifacts/java_runtimes.zip
