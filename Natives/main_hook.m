@@ -7,6 +7,7 @@
 
 #include <dlfcn.h>
 #include <libgen.h>
+#include <mach/mach.h>
 #include <pthread.h>
 #include "external/fishhook/fishhook.h"
 
