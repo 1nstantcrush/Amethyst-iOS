@@ -22,18 +22,24 @@ jobs:
       - name: Install dependencies
         run: brew install ldid make zip
 
-      - name: Ensure JDK 8
-        run: |
-          if /usr/libexec/java_home -v 1.8 >/dev/null 2>&1; then
-            echo "JDK 8 already present: $(/usr/libexec/java_home -v 1.8)"
-          else
-            brew install --cask temurin@8
-          fi
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
 
       - name: Build IPA
         run: |
           export PATH="/opt/homebrew/opt/make/libexec/gnubin:$PATH"
-          gmake -j"$(sysctl -n hw.ncpu)" dsym package PLATFORM=2
+          BOOTJDK=""
+          if /usr/libexec/java_home -v 1.8 >/dev/null 2>&1; then
+            JH=$(/usr/libexec/java_home -v 1.8)
+            if "$JH/bin/javac" -version 2>&1 | grep -q '1\.8\.0'; then BOOTJDK="$JH/bin"; fi
+          fi
+          if [ -z "$BOOTJDK" ]; then BOOTJDK="$JAVA_HOME/bin"; fi
+          echo "Using BOOTJDK=$BOOTJDK"
+          "$BOOTJDK/javac" -version
+          gmake -j"$(sysctl -n hw.ncpu)" dsym package PLATFORM=2 BOOTJDK="$BOOTJDK"
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
