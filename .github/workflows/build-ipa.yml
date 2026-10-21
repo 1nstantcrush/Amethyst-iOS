@@ -28,6 +28,13 @@ jobs:
           distribution: zulu
           java-version: '8'
 
+      - name: Select newest Xcode
+        run: |
+          ls -d /Applications/Xcode*.app
+          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
       - name: Build IPA
         run: |
           export PATH="$(brew --prefix make)/libexec/gnubin:$PATH"
