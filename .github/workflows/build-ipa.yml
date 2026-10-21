@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build unsigned iOS IPA
@@ -43,3 +46,14 @@ jobs:
         with:
           name: amethyst-java-runtimes
           path: artifacts/java_runtimes.zip
+
+      - name: Publish IPA to Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="ipa-$(date +%Y%m%d-%H%M)"
+          IPA=$(ls artifacts/org.angelauramc.amethyst-*-ios.ipa | head -1)
+          gh release create "$TAG" "$IPA#Amethyst-iOS-unsigned.ipa" \
+            --title "Amethyst iOS build $TAG" \
+            --notes "Unsigned IPA built from commit $GITHUB_SHA. Sign with Sideloadly." \
+            --prerelease
